@@ -29,7 +29,6 @@ def generate_password():
 
     generated_password = "".join(password_list)
 
-    print(f"Your password is: {generated_password}")
     password_input.delete(0, END)
     password_input.insert(0, generated_password)
 
@@ -42,7 +41,6 @@ def generate_password():
 
 with open("data.txt", mode="r") as data_file:
     data = data_file.read()
-    print(data)
 
 
 def add_data():
@@ -67,7 +65,6 @@ def add_data():
 
     confirm = messagebox.askokcancel(title=site, message=f"Is this info correct:\n{site}\n{email}\n{password}")
 
-    print(f"confirm: {confirm}")
     if not confirm:
         return
 
