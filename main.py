@@ -1,7 +1,9 @@
+from json import JSONDecodeError
 from tkinter import *
 from tkinter import messagebox
 import random
 import pyperclip
+import json
 
 
 # ---------------------------- PASSWORD GENERATOR ------------------------------- #
@@ -36,19 +38,49 @@ def generate_password():
 
 
 # ---------------------------- SAVE PASSWORD ------------------------------- #
-# with open("data.txt", mode="a") as data_file:
+# with open("data.json", mode="a") as data_file:
 #     data = data_file.write("Amazon | commonemail@gmail.com | password \n")
+# try:
+#     data_file = open("data.json", mode="r")
+# except:
+#     data = {}
+# else:
+#     data = json.load(data_file)
 
-with open("data.txt", mode="r") as data_file:
-    data = data_file.read()
+
+def search_website():
+    site_name = website_input.get().title()
+
+    if not site_name:
+        print("please provide a website")
+        messagebox.showerror(title="Search Website", message="Please enter a website")
+        return
+    try:
+        with open("data.json", "r") as data_file:
+            data = json.load(data_file)
+    except FileNotFoundError:
+        print("error inside except")
+        messagebox.showinfo(title="Website data", message=f"No file found")
+        return
+    except JSONDecodeError:
+        print("error inside except")
+        messagebox.showinfo(title="Website data", message=f"No file found")
+        return
+    else:
+        if site_name in data:
+            saved_email = data[site_name]['email']
+            saved_password = data[site_name]['password']
+            messagebox.showinfo(title=site_name, message=f"email: {saved_email}\npassword: {saved_password}")
+        else:
+            messagebox.showinfo(title="Website data", message=f"No password saved for {site_name}")
 
 
 def add_data():
-    site = website_input.get().title()
+    website = website_input.get().title()
     email = email_username_input.get()
     password = password_input.get()
     error_message = None
-    if not site:
+    if not website:
         error_message = "Enter website"
     elif not email:
         error_message = "Enter an email"
@@ -62,18 +94,26 @@ def add_data():
     if error_message:
         messagebox.showerror(title="Invalid Info", message=error_message)
         return
+    formatted_data = {
+        website: {
+            "email": email,
+            "password": password
+        }
+    }
+    try:
+        with open("data.json", "r") as data_file:
+            data = json.load(data_file)
+    except FileNotFoundError:
+        print("error inside except")
+        data = {}
+    except JSONDecodeError:
+        print("error inside except")
+        data = {}
 
-    confirm = messagebox.askokcancel(title=site, message=f"Is this info correct:\n{site}\n{email}\n{password}")
+    data.update(formatted_data)
 
-    if not confirm:
-        return
-
-    formatted_data = f"{site} | {email} | {password} \n"
-    mode = "w"
-    if len(data) > 0:
-        mode = "a"
-    with open("data.txt", mode=mode) as current_data_file:
-        current_data_file.write(formatted_data)
+    with open("data.json", mode="w") as current_data_file:
+        json.dump(data, current_data_file, indent=4)
 
     website_input.delete(0, END)
     website_input.insert(0, "")
@@ -104,15 +144,18 @@ email_username.grid(column=0, row=2)
 password_label = Label(text="Password:")
 password_label.grid(column=0, row=3)
 
-website_input = Entry(master=window, width=52)
-website_input.grid(column=1, row=1, columnspan=2, sticky=W, padx=10)
+website_input = Entry(master=window, width=31)
+website_input.grid(column=1, row=1, columnspan=1, sticky=W, padx=10)
 
-email_username_input = Entry(master=window, width=52, )
+search_button = Button(master=window, text="Search by Website", command=search_website)
+search_button.grid(column=2, row=1, sticky=W)
+
+email_username_input = Entry(master=window, width=31, )
 email_username_input.grid(column=1, row=2, columnspan=2, sticky=W, padx=10)
 email_username_input.insert(0, "commonemail@gmail.com")
 
 password_input = Entry(master=window, width=31)
-password_input.grid(column=1, row=3, sticky=W, padx=10)
+password_input.grid(column=1, row=3, sticky=W, padx=10, columnspan=1)
 
 generate_password_button = Button(master=window, text="Generate Password", command=generate_password)
 generate_password_button.grid(column=2, row=3, sticky=W)
